@@ -25,7 +25,7 @@ def convert26letters(num):
     return s
 
 def convert26to10(s):
-    int26=converts26toi26(s)
+    int26=convert26int(s)
 
     int10=0
     for x in range (len(str(int26))):
@@ -57,13 +57,13 @@ class Craker:
         self.id=int(reach_soc.recv(1024).decode())
         self.port=self.id+SERVER_PORT
         self.soc=socket.socket()
-        self.soc.bind(('192.168.137.9',self.port))
+        self.soc.bind(('0.0.0.0',self.port))
     
     def listen(self):
         self.finished_task=False
         self.soc.listen()
         self.mother_soc,adress=self.soc.accept()
-        data=mother_soc.recv(1024).decode()
+        data=self.mother_soc.recv(1024).decode()
         data=data.split(',')
         self.start=data[0]
         self.finish=data[1]
@@ -97,23 +97,23 @@ class Craker:
 
         self.threads_status=[]
         #config wait thread to recive possible message from mother socket
-        wait_thread=threading.Thread(target=did_finish_early, args=(self,))
+        wait_thread=threading.Thread(target=self.did_finish_early, args=(self,))
         wait_thread.start()
         wait_thread.join()
 
         #config thread crackers
         num_of_threads=8
         int_start=convert26to10(self.start)
-        int_end=convert26to10(self.end)
+        int_end=convert26to10(self.finish)
         length=int_end-int_start+1
         individual_length=int(length//num_of_threads)
 
         individual_start=self.start
         threads=[]
         for x in range (num_of_threads):
-            t=threading.Thread(target=self.cracker_code(),args=(self,individual_starts,individual_length,self.target,x))
+            t=threading.Thread(target=self.cracker_code,args=(self,individual_start,individual_length,self.target,x))
             t.start()
-            t.append(threads)
+            threads.append(threads)
             individual_start+=individual_length
         
         for t in threads:
@@ -121,7 +121,7 @@ class Craker:
 
         if length%num_of_threads!=0:
             extra_thread_len=length%num_of_threads
-            extra_thread=threading.Thread(target=self.cracker_code(),args=(self,individual_start,extra_thread_len,self.target,num_of_threads))
+            extra_thread=threading.Thread(target=self.cracker_code,args=(self,individual_start,extra_thread_len,self.target,num_of_threads))
             extra_thread.start()
             extra_thread.join()
 
