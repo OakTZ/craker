@@ -6,7 +6,7 @@ import turtle
 import time
 import webbrowser
 
-IP='10.30.58.40'
+IP="10.30.58.40"#10.30.58.40
 SERVER_PORT=13370
 
 #takes str and return int on base 26
@@ -25,6 +25,7 @@ def convert26letters(num):
         s=s+chr(int(c)+96)
     return s
 
+
 #converts string base 26 to int base 10
 def convert26to10(s):
     int26=convert26int(s)
@@ -39,7 +40,7 @@ def convert26to10(s):
 #converts int base 10 to string base 26
 def convert10to26(num):
     if num <= 0:
-        return ""
+        return individual_length
     elif num <= 26:
         return chr(96+num)
     else:
@@ -60,7 +61,7 @@ class Craker:
         self.id=int(reach_soc.recv(1024).decode())
         self.port=self.id+SERVER_PORT
         self.soc=socket.socket()
-        self.soc.bind(('10.30.56.199',self.port))
+        self.soc.bind(("10.30.56.199",self.port))#10.30.56.199
     
     def listen(self):
         self.soc.listen()
@@ -72,6 +73,7 @@ class Craker:
 
     def getmission(self):
         data=self.mother_soc.recv(1024).decode()
+        print("got mission")
         data=data.split(',')
         self.start=data[0]
         self.finish=data[1]
@@ -81,15 +83,6 @@ class Craker:
     
     def celebrate(self):
         print("celebrate")
-        webbrowser.open_new('https://www.youtube.com/watch?v=i0WHMJDVsi4')
-        while True:
-            turtle.Screen().bgcolor("red")
-            time.sleep(0.3)
-            turtle.Screen().bgcolor("blue")
-            time.sleep(0.3)
-            turtle.Screen().bgcolor("green")
-            time.sleep(0.3)
-   
         
 
     
@@ -119,11 +112,13 @@ class Craker:
 
         individual_start=self.start
         threads=[]
-        ivs26=0
+        t_status=[]
+        
         for x in range (num_of_threads):
             t=threading.Thread(target=self.cracker_code,args=(individual_start,individual_length,self.target))
             t.start()
             threads.append(t)
+            t_status.append(True)
             ivs10=convert26to10(individual_start)
             ivs10=ivs10+individual_length 
             individual_start=convert10to26(ivs10)
@@ -132,30 +127,36 @@ class Craker:
             extra_thread_len=length%num_of_threads
             extra_thread=threading.Thread(target=self.cracker_code,args=(individual_start,extra_thread_len,self.target))
             extra_thread.start()
-            extra_thread.join()
+            threads.append(extra_thread)
+            t_status.append(True)
 
+        
         while self.finished_task==False:
             if self.found==True:
                 self.finished_task=True
+                self.celebrate()
                 break
             
             if self.ifound==True:
                 self.mother_soc.send(f"{self.id},true,{self.target},{self.md5}".encode())
                 self.finished_task=True
+                self.celebrate()
                 break
 
             finished=False
+            
             for thread in threads:
-                if thread.is_alive() == True:
-                    finished=False
+                if thread.is_alive() == False:
+                    t_status.pop()
                     break
-
-            if finished ==True:
+                
+            
+            if len(t_status)==0:
                 self.mother_soc.send(f"{self.id},false,{self.target}".encode())
+                print("not found")
                 self.finished_task=True 
                 self.listen()
 
-        self.celebrate()
 
 
 
