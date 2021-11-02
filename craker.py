@@ -6,7 +6,7 @@ import turtle
 import time
 import webbrowser
 
-IP='127.0.0.1'
+IP='10.30.58.40'
 SERVER_PORT=13370
 
 #takes str and return int on base 26
@@ -60,7 +60,7 @@ class Craker:
         self.id=int(reach_soc.recv(1024).decode())
         self.port=self.id+SERVER_PORT
         self.soc=socket.socket()
-        self.soc.bind(('127.0.0.1',self.port))
+        self.soc.bind(('10.30.56.199',self.port))
     
     def listen(self):
         self.soc.listen()
@@ -81,9 +81,7 @@ class Craker:
     
     def celebrate(self):
         print("celebrate")
-        time.sleep(1)
         webbrowser.open_new('https://www.youtube.com/watch?v=i0WHMJDVsi4')
-        print("a")
         while True:
             turtle.Screen().bgcolor("red")
             time.sleep(0.3)
