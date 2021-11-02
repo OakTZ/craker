@@ -2,9 +2,9 @@ import socket
 import threading
 import hashlib
 import math
-from pygame import  mixer
 import turtle
 import time
+import webbrowser
 
 IP='127.0.0.1'
 SERVER_PORT=13370
@@ -36,7 +36,7 @@ def convert26to10(s):
 
     return int10
 
-#converts int base 10 to int base 26
+#converts int base 10 to string base 26
 def convert10to26(num):
     if num <= 0:
         return ""
@@ -57,8 +57,8 @@ class Craker:
         reach_soc=socket.socket()
         reach_soc.connect((IP,SERVER_PORT))
         reach_soc.send("Howdy".encode())
-        port_id=int(reach_soc.recv(1024).decode())
-        self.port=port_id+SERVER_PORT
+        self.id=int(reach_soc.recv(1024).decode())
+        self.port=self.id+SERVER_PORT
         self.soc=socket.socket()
         self.soc.bind(('127.0.0.1',self.port))
     
@@ -80,10 +80,10 @@ class Craker:
         self.crack()
     
     def celebrate(self):
-        #mixer.init()
-        #mixer.music.load('back.wav')
-        #mixer.music.play()
-
+        print("celebrate")
+        time.sleep(1)
+        webbrowser.open_new('https://www.youtube.com/watch?v=i0WHMJDVsi4')
+        print("a")
         while True:
             turtle.Screen().bgcolor("red")
             time.sleep(0.3)
@@ -91,6 +91,8 @@ class Craker:
             time.sleep(0.3)
             turtle.Screen().bgcolor("green")
             time.sleep(0.3)
+   
+        
 
     
     def did_finish_early(self):
@@ -108,7 +110,7 @@ class Craker:
         self.found=False
         wait_thread=threading.Thread(target=self.did_finish_early)
         wait_thread.start()
-        wait_thread.join()
+
 
         #config thread crackers
         num_of_threads=8
@@ -124,14 +126,10 @@ class Craker:
             t=threading.Thread(target=self.cracker_code,args=(individual_start,individual_length,self.target))
             t.start()
             threads.append(t)
-            print(individual_start,individual_length)
-            ivs26=convert26int(individual_start)
-            ivs26=ivs26+individual_length #PROBLEM!!!!!!!!
-            individual_start=convert26letters(ivs26)
+            ivs10=convert26to10(individual_start)
+            ivs10=ivs10+individual_length 
+            individual_start=convert10to26(ivs10)
         
-        for t in threads:
-            t.join()
-
         if length%num_of_threads!=0:
             extra_thread_len=length%num_of_threads
             extra_thread=threading.Thread(target=self.cracker_code,args=(individual_start,extra_thread_len,self.target))
@@ -140,23 +138,17 @@ class Craker:
 
         while self.finished_task==False:
             if self.found==True:
-                wait_thread.exit()
-                for t in threads:
-                    t.exit()
-                extra_thread.exit()
                 self.finished_task=True
-
+                break
+            
             if self.ifound==True:
                 self.mother_soc.send(f"{self.id},true,{self.target},{self.md5}".encode())
-                wait_thread.exit()
-                for t in threads:
-                    t.exit()
-                extra_thread.exit()
-                self.finished_task=True 
+                self.finished_task=True
+                break
 
             finished=False
             for thread in threads:
-                if thread.is_alive() ==True:
+                if thread.is_alive() == True:
                     finished=False
                     break
 
@@ -170,9 +162,9 @@ class Craker:
 
 
     def cracker_code(self,start,length,target):
-
+        #print(f"{start},{length},{target}\n")
         for x in range(length):
-            val=convert26letters(convert26int(start)+x)
+            val=convert10to26(convert26to10(start)+x)
             if (hexa(val)==target):
                 self.md5=val
                 self.ifound=True
