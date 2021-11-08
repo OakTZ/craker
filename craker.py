@@ -4,9 +4,9 @@ import hashlib
 import math
 import turtle
 import time
-import webbrowser
+from os import startfile
 
-IP="10.30.58.40"#10.30.58.40
+IP="127.0.0.1"#10.30.58.40
 SERVER_PORT=13370
 
 #takes str and return int on base 26
@@ -61,7 +61,7 @@ class Craker:
         self.id=int(reach_soc.recv(1024).decode())
         self.port=self.id+SERVER_PORT
         self.soc=socket.socket()
-        self.soc.bind(("10.30.56.199",self.port))#10.30.56.199
+        self.soc.bind(("0.0.0.0",self.port))
     
     def listen(self):
         self.soc.listen()
@@ -73,7 +73,6 @@ class Craker:
 
     def getmission(self):
         data=self.mother_soc.recv(1024).decode()
-        print("got mission")
         data=data.split(',')
         self.start=data[0]
         self.finish=data[1]
@@ -83,6 +82,10 @@ class Craker:
     
     def celebrate(self):
         print("celebrate")
+        
+        path=r'C:\Users\student\Desktop\cracker\babyback.mp4'
+        startfile(path)
+        
         
 
     
@@ -112,13 +115,12 @@ class Craker:
 
         individual_start=self.start
         threads=[]
-        t_status=[]
-        
+
         for x in range (num_of_threads):
             t=threading.Thread(target=self.cracker_code,args=(individual_start,individual_length,self.target))
             t.start()
+            print(f"{x},{individual_start},{individual_length}")
             threads.append(t)
-            t_status.append(True)
             ivs10=convert26to10(individual_start)
             ivs10=ivs10+individual_length 
             individual_start=convert10to26(ivs10)
@@ -127,10 +129,9 @@ class Craker:
             extra_thread_len=length%num_of_threads
             extra_thread=threading.Thread(target=self.cracker_code,args=(individual_start,extra_thread_len,self.target))
             extra_thread.start()
-            threads.append(extra_thread)
-            t_status.append(True)
+            print(f"extra,{individual_start},{extra_thread_len}")
+            
 
-        
         while self.finished_task==False:
             if self.found==True:
                 self.finished_task=True
@@ -144,14 +145,12 @@ class Craker:
                 break
 
             finished=False
-            
             for thread in threads:
-                if thread.is_alive() == False:
-                    t_status.pop()
+                if thread.is_alive() == True:
+                    finished=False
                     break
-                
-            
-            if len(t_status)==0:
+
+            if finished ==True:
                 self.mother_soc.send(f"{self.id},false,{self.target}".encode())
                 print("not found")
                 self.finished_task=True 
